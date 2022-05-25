@@ -1,25 +1,58 @@
 pipeline {
     agent any
     stages {
-        stage("Compile") {
+        stage('Compile') {
             steps {
-                sh "./gradlew compileJava"
+                sh './gradlew compileJava'
             }
         }
-        stage ("Unit test") {
+        stage ('Unit test') {
             steps {
-                sh "./gradlew test"
+                sh './gradlew test'
             }
         }
-        stage("Code coverage") {
+        stage('Code coverage') {
             steps {
-                sh "./gradlew jacocoTestReport"
+                sh './gradlew jacocoTestReport'
                 publishHTML (target : [
                     reportDir : 'build/reports/jacoco/test/html',
                     reportFiles : 'index.html',
-                    reportName : "Jacoco Report"
+                    reportName : 'Jacoco Report'
                 ])
-                sh "./gradlew jacocoTestCoverageVerification"
+                sh './gradlew jacocoTestCoverageVerification'
+            }
+        }
+        stage('Static code analysis') {
+            steps {
+                sh './gradlew checkstyleMain'
+                publishHTML (target : [
+                    reportDir : 'build/reports/checkstyle/',
+                    reportFiles : 'main.html',
+                    reportName : 'Checkstyle Report'
+                ])
+            }
+        }
+        stage('Sonarqube') {
+            environment {
+                scannerHome = tool 'SonarQubeScanner'
+            }
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+        node {
+            stage('SCM') {
+                checkout scm
+            }
+            stage('SonarQube Analysis') {
+                withSonarQubeEnv {
+                    sh './gradlew sonarqube'
+                }
             }
         }
     }
