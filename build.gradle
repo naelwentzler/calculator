@@ -4,6 +4,7 @@ plugins {
 	id 'java'
 	id 'jacoco'
 	id 'checkstyle'
+     id "org.sonarqube" version "3.3"
 }
 
 group = 'com.naelwentzler'
@@ -32,4 +33,10 @@ jacocoTestCoverageVerification {
                }
           }
      }
+}
+
+sonarqube {
+  properties {
+    property "sonar.projectKey", "Jenkins"
+  }
 }
