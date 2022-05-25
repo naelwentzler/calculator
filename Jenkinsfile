@@ -50,7 +50,7 @@ pipeline {
                 checkout scm
             }
             stage('SonarQube Analysis') {
-                withSonarQubeEnv() {
+                withSonarQubeEnv {
                     sh './gradlew sonarqube'
                 }
             }
